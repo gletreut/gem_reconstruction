@@ -6,7 +6,7 @@ The code given here implements a method to reconstruct a polymer model with harm
 
 ## Getting Started
 
-Follow these instructions to get a basic example running.
+Follow these instructions to get a basic running example.
 
 ### Prerequisites
 
@@ -21,16 +21,16 @@ cd dockerfiles
 sudo docker build -t root/gem:16.04 16.04/.
 ```
 
-Optionally you can create an additional image with user name and ID matching your local machine. Your `/home/user/` directory will be mounted at the same location within your container so that you can easily access your file system.
+Optionally you can create an additional image with user name and ID matching your local machine. Your `/home/user/` directory will be mounted at the same location within your container so that you can easily access your file system. First edit the file `dockerfiles/user/Dockerfile` and replace the user name, user ID, group name and group ID to match those on your local machine. Then:
 
 ```
 cd dockerfiles
-sudo docker build -t user/gem:16.04 16.04/.
+sudo docker build -t user/gem:16.04 user/.
 ```
 
 In order to compile and run code of this project, you can then simply create a docker container and run the commands from inside. First create an alias:
 ```
-alias docker-gem='sudo docker run --rm -it -w=$PWD -v /home/user:/home/user -h gem user/gem:16.04'
+alias docker-gem='sudo docker run --rm -it -w=$PWD -v $HOME:$HOME -h gem user/gem:16.04'
 ```
 
 You might also consider adding directly this line to your `~/.bash_aliases` or `~/.bashrc` files. Then execute the alias to run a new container from your image in a terminal:
@@ -53,9 +53,9 @@ There are three implementations available:
 
 `minimize.cpp` requires the following arguments: `cmapfile N thres`. `cmapfile` is the path to a file containing a contact probability matrix (see examples below). `N` is the last index of the contact probability matrix to import. `thres` is the threshold to be used in the GEM mapping.
 
-`minimize_thres.cpp` requires the following arguments: `cmapfile N thresmin thresmax dthres`. `cmapfile` is the path to a file containing a contact probability matrix (see examples below). `N` is the last index of the contact probability matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
+`minimize_thres.cpp` requires the following arguments: `cmapfile N thresmin thresmax dthres`. `cmapfile` is the path to a file containing a contact probability matrix. `N` is the last index of the contact probability matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
 
-`minimize_thres_norm.cpp` requires the following arguments: `nmapfile znorm N thresmin thresmax dthres`. `nmapfile` is the path to a file containing a contact count matrix. `znorm` is a global factor by which to divide every entry of the contact count matrix. `N` is the last index of the contact probability matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
+`minimize_thres_norm.cpp` requires the following arguments: `nmapfile znorm N thresmin thresmax dthres`. `nmapfile` is the path to a file containing a contact count matrix. `znorm` is a global factor by which to divide every entry of the contact count matrix. `N` is the last index of the contact count matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
 
 ### Compilation
 The compilation process can be performed using the `minimize/bash/compile.sh` file:
