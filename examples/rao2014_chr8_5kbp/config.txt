@@ -1,0 +1,5 @@
+0.0		ftol
+1.0e-08		frtol
+0.0		ktol
+200000		itermax
+100		dump
