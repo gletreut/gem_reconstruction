@@ -25,7 +25,7 @@ make_matrix_plot_arg:
     cmapname: magma
 
 # comparison of several matrices
-multi_matrices: [[cmat_bd_nconf100_thres1.5.txt, cmat_opt.dat]]
+multi_matrices: [[cmat_bd_nconf10000_thres2.0.txt, cmat_out.dat]]
 make_matrix_plot_two_arg:
   fig_width: 4
   fig_height: 4
