@@ -10,7 +10,7 @@ Follow these instructions to get a basic running example.
 
 ### Prerequisites
 
-You will need to install [Docker](https://www.docker.com). See [the documentation](https://docs.docker.com)
+You will need to install [Docker](https://www.docker.com). See [the documentation](https://docs.docker.com).
 
 ### Installing
 
@@ -65,7 +65,7 @@ bash bash/compile.sh
 ```
 This will write an executable file named `prog`.
 
-You may need first to edit the `compile.sh` file with a text editor to select the implementation you want to compile. You will need to comment/decomment the lines defining the `SRC1` variable.
+You may need first to edit the `compile.sh` file with a text editor to select the implementation you want to compile. You will need to comment/uncomment the lines defining the `SRC1` variable.
 
 You may also want to modity the `KEY1` variable to choose among the following options: `gsl`, `lapack` or `mkl`. This refers to the external library used for linear algebra operations. See the source code `minimize/include/linalg.cpp` for more details.
 
