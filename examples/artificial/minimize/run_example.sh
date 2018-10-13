@@ -7,13 +7,24 @@ THRES=1.5 # threshold used when using the GEM mapping between contact proba and 
 CONFIG='config.txt' # configuration file for the minimization algorithm.
 YAML1='make_matrix_plots_cmaps.yml' # configuration file for plot
 YAML2='make_matrix_plots_kmaps.yml' # configuration file for plot
+argsstr="argsstr"
+configstr="configstr"
 
 # compile code
 bash ../../../minimize/bash/compile.sh ../../../minimize
 
+# create argument files
+## ARGUMENT FILES
+echo $N > $argsstr
+echo $THRES >> $argsstr
+echo $CMAT >> $argsstr
+echo $THMAX >> $argsstr
+echo ${CONFIG} > $configstr
+
 # execute
-bash ../../../minimize/bash/run.sh prog ${CMAT} ${N} ${THRES} ${CONFIG}
-rm prog
+#bash ../../../minimize/bash/run.sh prog ${CMAT} ${N} ${THRES} ${CONFIG}
+bash ../../../minimize/bash/run.sh
+rm -f prog
 
 # plot result
 python ../../../plots/make_matrix_plots.py ${YAML1}  .

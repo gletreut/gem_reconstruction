@@ -1,32 +1,65 @@
 #!/bin/bash
 
-if [ -z $1 ]
+# get directories
+if [ ! -z $1 ]
 then
-  echo you must give argments
+	RDIR=$(python -c "import os.path; print os.path.realpath(\"$1\")")
+else
+	RDIR=$(pwd)
+fi
+cd $RDIR
+
+# redirect output to log file
+LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
+LOG=${RDIR}/$LOG
+exec 1<&-
+exec 2<&-
+exec 1<>$LOG
+exec 2>&1
+
+# parameters
+EXEC=prog                   # executable
+argsstr="argsstr"
+datastr="datastr"
+
+# check existence of args and data file
+if [ ! -e $EXEC ]
+then
+  echo "missing executable file $EXEC"
+  exit 0
+fi
+
+if [ ! -f $argsstr ]
+then
+  echo "missing arguments argument file $argsstr"
+  exit 0
+fi
+
+if [ ! -f $datastr ]
+then
+  echo "missing data argument file $datastr"
   exit 0
 fi
 
 # get arguments
-EXEC=$(python -c "import os.path; print os.path.realpath(\"$1\")")
-N=$2
-THRESMIN=$3
-THRESMAX=$4
-DTHRES=$5
-CMAP=$6
-CONFIG=$7
+#ARGS=$(cat $argsstr)
+N=$(sed -n 1p $argsstr)
+THRESMIN=$(sed -n 2p $argsstr)
+THRESMAX=$(sed -n 3p $argsstr)
+DTHRES=$(sed -n 4p $argsstr)
+CMAP=$(sed -n 5p $argsstr)
+DATA=$(cat $datastr)
 
-## redirect output to log file
-#RDIR=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
-#LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
-#LOG=${RDIR}/$LOG
-#exec 1<&-
-#exec 2<&-
-#exec 1<>$LOG
-#exec 2>&1
+echo "N: $N"
+echo "THRESMIN: $THRESMIN"
+echo "THRESMAX: $THRESMAX"
+echo "DTHRES: $DTHRES"
+echo "CMAP: $CMAP"
+echo "DATA: $DATA"
 
-if [ -z $CMAP ] || [ -z $THRESMIN ] || [ -z $THRESMAX ] || [ -z $DTHRES ] || [ -z $N ]
+if [ -z $CMAP ] || [ -z $THRESMIN ] || [ -z $THRESMAX ] [ -z $DTHRES ] || [ -z $N ]
 then
-  echo invalid arguments in arguments!
+  echo invalid arguments in arguments file: $ARGS
   exit 1
 fi
 
@@ -42,4 +75,4 @@ then
 fi
 
 # execute program
-$EXEC $CMAP $N $THRESMIN $THRESMAX $DTHRES < $CONFIG
+time ./$EXEC $CMAP $N $THRESMIN $THRESMAX $DTHRES < $DATA

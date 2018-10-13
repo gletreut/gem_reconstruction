@@ -1,20 +1,15 @@
 #!/bin/bash
 
-if [ -z $1 ]
+# get directories
+if [ ! -z $1 ]
 then
-  echo you must give argments
-  exit 0
+	RDIR=$(python -c "import os.path; print os.path.realpath(\"$1\")")
+else
+	RDIR=$(pwd)
 fi
+cd $RDIR
 
-# get arguments
-EXEC=$(python -c "import os.path; print os.path.realpath(\"$1\")")
-CMAP=$2
-N=$3
-THRES=$4
-CONFIG=$5
-
-## redirect output to log file
-#RDIR=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
+# redirect output to log file
 #LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
 #LOG=${RDIR}/$LOG
 #exec 1<&-
@@ -22,15 +17,45 @@ CONFIG=$5
 #exec 1<>$LOG
 #exec 2>&1
 
-echo "EXEC: $EXEC"
+# parameters
+EXEC=prog                   # executable
+argsstr="argsstr"
+configstr="configstr"
+
+# check existence of args and config file
+if [ ! -e $EXEC ]
+then
+  echo "missing executable file $EXEC"
+  exit 0
+fi
+
+if [ ! -f $argsstr ]
+then
+  echo "missing arguments argument file $argsstr"
+  exit 0
+fi
+
+if [ ! -f $configstr ]
+then
+  echo "missing config argument file $configstr"
+  exit 0
+fi
+
+# get arguments
+#ARGS=$(cat $argsstr)
+N=$(sed -n 1p $argsstr)
+THRES=$(sed -n 2p $argsstr)
+CMAP=$(sed -n 3p $argsstr)
+CONFIG=$(cat $configstr)
+
 echo "N: $N"
 echo "THRES: $THRES"
 echo "CMAP: $CMAP"
 echo "CONFIG: $CONFIG"
 
-if [ -z $CMAP ] || [ -z $THRES ] || [ -z $N ] || [ -z $CONFIG ]
+if [ -z $CMAP ] || [ -z $THRES ] || [ -z $N ]
 then
-  echo invalid arguments in arguments!
+  echo invalid arguments in arguments file: $ARGS
   exit 1
 fi
 
@@ -46,4 +71,4 @@ then
 fi
 
 # execute program
-$EXEC $CMAP $N $THRES < $CONFIG
+time ./$EXEC $N $THRES $CMAP < $CONFIG

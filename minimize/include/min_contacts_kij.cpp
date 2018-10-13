@@ -79,7 +79,6 @@ make_K2W(SparseMat *B, int N){
   return;
 }
 
-
 void
 make_W2K(SparseMat *BI, int N){
   /*
@@ -337,19 +336,22 @@ make_chain_structure(gsl_matrix *m){
 double
 J(const gsl_matrix *kk, void *params){
   /* function of the quadratic distance */
-  double jj;
-  int nrow,ncol;
+  double jj,zij,mij,norm;
+  int nrow,ncol,N;
 
   model *mod;
-  gsl_matrix *z1(0),*emat(0),*cmat(0);
+  gsl_matrix *z1(0),*emat(0),*cmat(0),*mask(0);
 
   /* initializations */
   mod=static_cast<model *> (params);
   emat=mod->emat;
   cmat=mod->cmat;
   z1=mod->work->workN1_1;
+  mask = mod->mask;
+  norm = linalg_ddot(mask,mask);
   nrow = emat->size1;
   ncol = emat->size2;
+  N=mod->N;
 
   /* update model from k */
   mod->set_k(kk);
@@ -357,8 +359,15 @@ J(const gsl_matrix *kk, void *params){
   /* compute function using vector views */
   gsl_matrix_memcpy(z1,cmat);   // z1 = cmat
   linalg_daxpy(-1.0,emat,z1);   // z1 <- z1-emat
+  for (int i=0;i<N+1;i++){      // remove masked values
+    for (int j=0;j<N+1;j++){
+      zij = gsl_matrix_get(z1,i,j);
+      mij = gsl_matrix_get(mask,i,j);
+      gsl_matrix_set(z1,i,j,zij*mij);
+    }
+  }
   jj = linalg_ddot(z1,z1);
-  jj=0.5*jj/(nrow*ncol);
+  jj=0.5*jj/norm;
 
   return jj;
 }
@@ -368,9 +377,9 @@ dJ(const gsl_matrix *kk, void *params, gsl_matrix *gradient){
   /* compute gradient of J */
 
   int N,nrow,ncol;
-  double thres,val,gij,cij,eij;
+  double thres,val,gij,cij,eij,mij,norm;
   model *mod(0);
-  gsl_matrix *emat(0),*cmat(0),*gammat(0),*xinv(0),*y1(0),*y2(0),*z1(0),*z2(0);
+  gsl_matrix *emat(0),*cmat(0),*gammat(0),*xinv(0),*y1(0),*y2(0),*z1(0),*z2(0),*mask(0);
   SparseMat *B(0),*C(0);
   gsl_vector_view y1view,y2view,z1view,z2view,gview;
 
@@ -386,6 +395,8 @@ dJ(const gsl_matrix *kk, void *params, gsl_matrix *gradient){
   y2=mod->work->workN_2;
   z1=mod->work->workN1_1;
   z2=mod->work->workN1_2;
+  mask = mod->mask;
+  norm = linalg_ddot(mask,mask);
   B=mod->B;
   C=mod->C;
   nrow = emat->size1;
@@ -409,7 +420,8 @@ dJ(const gsl_matrix *kk, void *params, gsl_matrix *gradient){
       gij = gsl_matrix_get(gammat,i,j);
       cij = gsl_matrix_get(cmat,i,j);
       eij = gsl_matrix_get(emat,i,j);
-      val = (cij-eij) * mod->dfunc(gij,&thres);      // z_ij = (cij-eij) x f'(gamma_ij)
+      mij = gsl_matrix_get(mask,i,j);
+      val = (cij-eij) * mod->dfunc(gij,&thres) * mij;      // z_ij = (cij-eij) x f'(gamma_ij) x mij
       gsl_matrix_set(z2,i,j,val);
     }
   }
@@ -423,7 +435,7 @@ dJ(const gsl_matrix *kk, void *params, gsl_matrix *gradient){
   linalg_spdgemv(TRANS, 1.0, B, &y1view.vector, 0.0, &gview.vector);
 
   /** divide by N^2 **/
-  linalg_dscal(1.0/(nrow*ncol),gradient);
+  linalg_dscal(1.0/norm,gradient);
 
   /* exit */
   return;
@@ -469,9 +481,9 @@ JdJ(const gsl_matrix *kk, void *params, double *jj, gsl_matrix *gradient){
    */
 
   int N,nrow,ncol;
-  double thres,val,gij,cij,eij;
+  double thres,val,gij,cij,eij,zij,mij,norm;
   model *mod(0);
-  gsl_matrix *emat(0),*cmat(0),*gammat(0),*xinv(0),*y1(0),*y2(0),*z1(0),*z2(0);
+  gsl_matrix *emat(0),*cmat(0),*gammat(0),*xinv(0),*y1(0),*y2(0),*z1(0),*z2(0),*mask(0);
   SparseMat *B(0),*C(0);
   gsl_vector_view y1view,y2view,z1view,z2view,gview;
 
@@ -491,15 +503,25 @@ JdJ(const gsl_matrix *kk, void *params, double *jj, gsl_matrix *gradient){
   C=mod->C;
   nrow = emat->size1;
   ncol = emat->size2;
+  mask = mod->mask;
+  norm = linalg_ddot(mask,mask);
 
   /* update model from k */
   mod->set_k(kk);
 
-  /* compute function using vector views */
+  /* compute function */
   gsl_matrix_memcpy(z1,cmat);   // y = cmat
   linalg_daxpy(-1.0,emat,z1);   // y <- y-emat
+  for (int i=0;i<N+1;i++){      // remove masked values
+    for (int j=0;j<N+1;j++){
+      zij = gsl_matrix_get(z1,i,j);
+      mij = gsl_matrix_get(mask,i,j);
+      gsl_matrix_set(z1,i,j,zij*mij);
+    }
+  }
+
   *jj = linalg_ddot(z1,z1);
-  *jj=0.5*(*jj)/(nrow*ncol);
+  *jj=0.5*(*jj)/norm;
 
   /* compute gradient according to K */
   y1view = gsl_vector_view_array(y1->block->data,y1->block->size);
@@ -509,28 +531,29 @@ JdJ(const gsl_matrix *kk, void *params, double *jj, gsl_matrix *gradient){
   gview  = gsl_vector_view_array(gradient->block->data,gradient->block->size);
 
   /** compute upsilon matrix **/
-  gsl_matrix_memcpy(z1,cmat);     // g=y
-  linalg_daxpy(-1.0,emat,z1);     // g = cmat - emat
+//  gsl_matrix_memcpy(z1,cmat);     // g=y
+//  linalg_daxpy(-1.0,emat,z1);     // g = cmat - emat
   for (int i=0;i<N+1;i++){
     for (int j=0;j<N+1;j++){
       gij = gsl_matrix_get(gammat,i,j);
       cij = gsl_matrix_get(cmat,i,j);
       eij = gsl_matrix_get(emat,i,j);
-      val = (cij-eij) * mod->dfunc(gij,&thres);      // z_ij = (cij-eij) x f'(gamma_ij)
+      mij = gsl_matrix_get(mask,i,j);
+      val = (cij-eij) * mod->dfunc(gij,&thres) * mij;      // z_ij = (cij-eij) x f'(gamma_ij) x mij
       gsl_matrix_set(z2,i,j,val);
     }
   }
-  linalg_spdgemv(TRANS, 1.0, C, &z2view.vector, 0.0, &y1view.vector);
+  linalg_spdgemv(TRANS, 1.0, C, &z2view.vector, 0.0, &y1view.vector); // y = C^T . z2
 
   /** compute gradient according to X **/
-  linalg_dgemm(NOTRANS,TRANS,1.0,y1,xinv,0.0,y2);
+  linalg_dgemm(NOTRANS,TRANS,1.0,y1,xinv,0.0,y2);   // y = \Upsilon X^-1 T
   linalg_dgemm(TRANS,NOTRANS,-1.0,xinv,y2,0.0,y1);  // y =-X^-1 T \Upsilon X^-1 T
 
   /** compute gradient according to K with W=B K**/
   linalg_spdgemv(TRANS, 1.0, B, &y1view.vector, 0.0, &gview.vector);
 
   /** divide by N^2 **/
-  linalg_dscal(1.0/(nrow*ncol),gradient);
+  linalg_dscal(1.0/norm,gradient);
 
   /* exit */
   return;
@@ -572,6 +595,7 @@ workspace_struct::alloc(int N_){
   cmat=gsl_matrix_calloc(N+1,N+1);
   gammat=gsl_matrix_calloc(N+1,N+1);
   emat=gsl_matrix_calloc(N+1,N+1);
+  mask=gsl_matrix_calloc(N+1,N+1);
   workN1_1=gsl_matrix_calloc(N+1,N+1);
   workN1_2=gsl_matrix_calloc(N+1,N+1);
   g0=gsl_matrix_calloc(N+1,N+1);
@@ -600,6 +624,7 @@ workspace_struct::free(){
   gsl_matrix_free(xinv);
   gsl_matrix_free(trid);
   gsl_matrix_free(w);
+  gsl_matrix_free(mask);
   gsl_matrix_free(workN_1);
   gsl_matrix_free(workN_2);
   gsl_matrix_free(k);
@@ -627,7 +652,7 @@ workspace_struct::free(){
 }
 
 /* model */
-model_struct::model_struct(gsl_matrix *emat_, double thres_, double (*func_)(double,void*), double (*dfunc_)(double,void*), double (*funcinv_)(double,void*), workspace *work_) {
+model_struct::model_struct(gsl_matrix *emat_, double thres_, double (*func_)(double,void*), double (*dfunc_)(double,void*), double (*funcinv_)(double,void*), workspace *work_, double cmask) {
   /* copy threshold */
   thres=thres_;
 
@@ -650,11 +675,12 @@ model_struct::model_struct(gsl_matrix *emat_, double thres_, double (*func_)(dou
   trid=work->trid;
   w=work->w;
 
-  /*** NxN ***/
+  /*** N+1xN+1 ***/
   k=work->k;
   cmat=work->cmat;
   gammat=work->gammat;
   emat=work->emat;
+  mask=work->mask;
 
   /** matrices for change of variables **/
   B=work->B;
@@ -669,6 +695,20 @@ model_struct::model_struct(gsl_matrix *emat_, double thres_, double (*func_)(dou
   if (emat_->size2 != N+1)
     throw invalid_argument("emat_ must be a square matrix!");
   gsl_matrix_memcpy(emat,emat_);
+
+  /* build mask based on emat */
+  gsl_matrix_set_all(mask,1.);
+  for (size_t i=0;i<mask->size1;i++){
+    for (size_t j=0;j<mask->size2;j++){
+      double eij = gsl_matrix_get(emat,i,j);
+      if (!(eij > cmask)) gsl_matrix_set(mask,i,j,0.);
+    }
+  }
+  /* TEST
+  //gsl_matrix_set(mask,0,1,0);
+  printf("MASK:\n");
+  print_matrix(mask);
+  // TEST */
 
   /* change of variable */
   make_K2W(B,N);
@@ -950,6 +990,69 @@ model_struct::print_infos(){
   return;
 }
 
+void
+compute_distances(double *f, double *f_rel, void *params){
+  /* compute various distances given the input model */
+  double zij,mij,f1,f2,norm;
+  int N;
+
+  model *mod;
+  /* matrices of size N+1 */
+  gsl_matrix *z1(0),*z2(0),*emat(0),*cmat(0),*mask(0);
+
+  /* initializations */
+  mod=static_cast<model *> (params);
+  emat=mod->emat;
+  cmat=mod->cmat;
+  z1=mod->work->workN1_1;
+  z2=mod->work->workN1_2;
+  mask=mod->mask;
+  N=mod->N;
+
+  /* normalization - number of non-zero elements in the mask */
+  norm = linalg_ddot(mask,mask);
+  /* TEST
+  cout << "*******************" << endl;
+  cout << "norm = " << norm << endl;
+  cout << "*******************" << endl;
+  // TEST */
+
+  /* compute f */
+  gsl_matrix_memcpy(z1,cmat);   // z1 = cmat
+  linalg_daxpy(-1.0,emat,z1);   // z1 <- z1-emat
+  for (int i=0;i<N+1;i++){      // remove masked values
+    for (int j=0;j<N+1;j++){
+      mij = gsl_matrix_get(mask,i,j);
+      zij = gsl_matrix_get(z1,i,j);
+      gsl_matrix_set(z1,i,j,zij*mij);
+    }
+  }
+  *f = linalg_dnrm2(z1) / sqrt(norm);
+
+  /* compute f_rel */
+  gsl_matrix_memcpy(z1,cmat);   // z1 = cmat
+  gsl_matrix_memcpy(z2,emat);   // z2 = emat
+  for (int i=0;i<N+1;i++){      // remove masked values
+    for (int j=0;j<N+1;j++){
+      // mask
+      mij = gsl_matrix_get(mask,i,j);
+
+      // z1
+      zij = gsl_matrix_get(z1,i,j);
+      gsl_matrix_set(z1,i,j,zij*mij);
+
+      // z2
+      zij = gsl_matrix_get(z2,i,j);
+      gsl_matrix_set(z2,i,j,zij*mij);
+    }
+  }
+  f1 = linalg_dnrm2(z1) / sqrt(norm);
+  f2 = linalg_dnrm2(z2) / sqrt(norm);
+  *f_rel = 2*(*f) / (f1 + f2); // 2 ||M1 - M2|| / (||M1|| + ||M2||)
+
+  return;
+}
+
 /* minimization */
 minimization_struct::minimization_struct(workspace *wkp){
   /* copy workspace address */
@@ -1169,7 +1272,7 @@ minimization_struct::min_J(gsl_matrix *k, double *f, void *params){
 #endif
 
 #if defined(VERBOSE)
-    if ( (iter % min->dump == 0) || (converged == 1) ){
+    if ( (iter % dump == 0) || (converged == 1) ){
       printf("%-20d%-+20.8e%-+20.8e%-+20.8e%-+20.8e%-+20.8e%-+20.8e\n", iter, step, *f , gnorm, std::abs(df/f0), dknorm/k0norm,dfrel);
     }
 #endif
@@ -1378,53 +1481,22 @@ project_matrix(model *mod, gsl_matrix *K, minimization *min){
     gsl_matrix_set_all(min->ac,1); // full constraints from start (the next loop is irrelevant)
     min->min_J(K, &f, mod);
 
-//    /* progressively add constraints */
-//    printf("K\n");
-//    print_matrix(K);
-//    for (size_t i=0;i<=N;i++){
-//      for (size_t j=i;j<=N;j++){
-////     /** find the most negative couplings indices **/
-//        min->get_largest_constraint(K,&p,&q,min->k1);
-//        kmin=gsl_matrix_get(min->k1,p,q);
-//        if (kmin == 0.0)
-//          break;
-////        gsl_matrix_min_index(K,&p,&q);
-////        kmin=gsl_matrix_get(K,p,q);
-////        /** break condition or add active constraint**/
-////        if ( !(kmin < 0.0) )
-////          break;
-//
-//        min->add_active_constraint(p,q);
-//
-//        /** perform minimization **/
-//        min->min_J(K,&f,mod);
-//
-//        /** print **/
-//        printf("p=%lu  q=%lu\n",p,q);
-//        printf("K\n");
-//        print_matrix(K);
-//      }
-//    }
-
 #ifdef DEBUG
     /* result */
     printf("K\n");
     print_matrix(K);
-#endif
-
-#ifdef VERBOSE
-    /* print distance of cmat matrix to emat */
-    gsl_matrix *y = wkp->workN1_1;
-    double distance;
-    mod->set_k(K);
-    gsl_matrix_memcpy(y,mod->cmat);
-    linalg_daxpy(-1.0,mod->emat,y);
-    distance = linalg_dnrm2(y);
     printf("C:\n");
     print_matrix(mod->cmat);
     printf("E:\n");
     print_matrix(mod->emat);
-    printf("||C - E||=%.6e\n",distance);
+#endif
+
+#ifdef VERBOSE
+    /* print distance of cmat matrix to emat */
+    double distance,distance_rel;
+    mod->set_k(K);
+    compute_distances(&distance,&distance_rel,mod);
+    printf("||C - E|| / (#nz el. mask) =%.6e\n",distance);
 
     /* print constraint history */
 //    printf("Active constraints:\n");

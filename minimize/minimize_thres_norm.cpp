@@ -1,8 +1,11 @@
 /* compilation option */
-#define VERBOSE
+//#define VERBOSE
 //#define DEBUG
 //#define FFACTOR_GAUSS
 
+#ifndef CMASK
+#define CMASK -1.
+#endif
 
 /* standard imports */
 #include <cstdlib>
@@ -21,7 +24,6 @@
 /* customs imports */
 #include "include/utils_gsl.h"
 #include "include/linalg.h"
-#include "include/sparse_matrix.h"
 #include "include/min_contacts_kij.h"
 
 /* test */
@@ -206,7 +208,8 @@ int main(int argc, char *argv []){
   print_matrix(pathtocmat,cmat);
 
   /* create workspace and model*/
-  mod = new model(cmat, thres, contact_func_f, contact_func_df, contact_func_finv, wkp);
+  mod = new model(cmat, thres, contact_func_f, contact_func_df, contact_func_finv, wkp, CMASK);
+  printf("%-20s%-lf\n","CMASK",CMASK);
   gsl_matrix_set_all(kmat_opt,0.0);    // initialize at zero
   distopt = 99.9e99;
 
@@ -231,17 +234,8 @@ int main(int argc, char *argv []){
     gsl_matrix_memcpy(sigmainv_opt,mod->x);
 
     /* compute distances */
-    double fc, fcc, fs, fk;
-    gsl_matrix_memcpy(mat1,cmat_opt);
-    linalg_daxpy(-1.0,cmat,mat1);
-    fc=linalg_dnrm2(mat1) / (N+1) ; // || M1 - M2 ||
-    fcc=2.0 * fc / (linalg_dnrm2(cmat) + linalg_dnrm2(cmat_opt)); // 2 ||M1 - M2|| / (||M1|| + ||M2||)
-    gsl_matrix_memcpy(mat1,kmat_opt);
-    linalg_daxpy(-1.0,kmat,mat1);
-    fk=linalg_dnrm2(mat1) / (N+1);
-    gsl_matrix_memcpy(mat2,sigma_opt);
-    linalg_daxpy(-1.0,sigma,mat2);
-    fs=linalg_dnrm2(mat2) / N;
+    double fc, fc_rel;
+    compute_distances(&fc,&fc_rel,mod);
 
     if (fc < distopt) {
       distopt = fc;
@@ -266,17 +260,18 @@ int main(int argc, char *argv []){
     /* print distances */
     printf("DISTANCES BETWEEN INPUT AND OUTPUT MATRICES:\n");
     printf("d(c,c_opt)=%.6e\n",fc);
-    printf("d_rel(c,c_opt)=%.6e\n",fcc);
-    printf("d(k,k_opt)=%.6e\n",fk);
-    printf("d(sigma,sigma_opt)=%.6e\n",fs);
+    printf("d_rel(c,c_opt)=%.6e\n",fc_rel);
+    //printf("d(k,k_opt)=%.6e\n",fk);
+    //printf("d(sigma,sigma_opt)=%.6e\n",fs);
     fdist << setw(20) << thres;
     fdist << setw(20) << fc;
-    fdist << setw(20) << fcc;
-    fdist << setw(20) << fk;
-    fdist << setw(20) << fs;
+    fdist << setw(20) << fc_rel;
+    //fdist << setw(20) << fk;
+    //fdist << setw(20) << fs;
     fdist << endl;
 
-    printf("%-+20.6f%-+20.6e%-+20.6e%-+20.6e%-+20.6e\n", mod->thres, fc, fcc, fk, fs);
+    //printf("%-+20.6f%-+20.6e%-+20.6e%-+20.6e%-+20.6e\n", mod->thres, fc, fc_rel, fk, fs);
+    printf("%-+20.6f%-+20.6e%-+20.6e\n", mod->thres, fc, fc_rel);
   }
 
   /* exit */

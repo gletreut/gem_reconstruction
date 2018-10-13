@@ -38,7 +38,7 @@ struct workspace_struct
   /** size NxN **/
   gsl_matrix *trid,*w,*x,*xinv,*workN_1,*workN_2;
   /** size (N+1)x(N+1) **/
-  gsl_matrix *k,*cmat,*gammat,*emat,*workN1_1,*workN1_2;
+  gsl_matrix *k,*cmat,*gammat,*emat,*mask,*workN1_1,*workN1_2;
   gsl_matrix *g0,*k1,*g1,*dk;
   gsl_matrix *ac; // active constraints
 
@@ -82,7 +82,7 @@ struct model_struct
   gsl_matrix *x,*xinv,*trid,*w;  // named quantities
 
   /** size (N+1)x(N+1) **/
-  gsl_matrix *k,*cmat,*gammat,*emat;
+  gsl_matrix *k,*cmat,*gammat,*emat,*mask;
 
   /** sparse matrices **/
   SparseMat *B;      // w=B k
@@ -96,7 +96,7 @@ struct model_struct
   double (*funcinv)(double,void*);
 
   /* constructor */
-  model_struct(gsl_matrix *eij_, double thres_, double (*func_)(double,void*), double (*dfunc_)(double,void*), double (*funcinv_)(double,void*), workspace *work_);
+  model_struct(gsl_matrix *eij_, double thres_, double (*func_)(double,void*), double (*dfunc_)(double,void*), double (*funcinv_)(double,void*), workspace *work_, double cmask=0.);
 
   /* built-in functions */
   /** set the model from one input matrix **/
@@ -129,8 +129,7 @@ typedef struct model_struct model;
 struct minimization_struct
 {
   /*
-   * define the problem workspace, that keeps a pointer to each array
-   * in the program.
+   * minimizer interface.
    */
 
   /* attributes */
@@ -179,6 +178,9 @@ double J(const gsl_matrix *kk, void *params);
 void dJ(const gsl_matrix *kk, void *params, gsl_matrix *gradient);
 void dJ_finite_diff(const gsl_matrix *kk, void *params, gsl_matrix *gradient);
 void JdJ(const gsl_matrix *kk, void *params, double *jj, gsl_matrix *gradient);
+
+/* compute distances (used in main) */
+void compute_distances(double *f, double *f_rel, void *params);
 
 /* useful functions */
 void make_K2W(SparseMat *B, int N);

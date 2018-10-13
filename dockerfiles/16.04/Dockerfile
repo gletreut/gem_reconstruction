@@ -5,11 +5,12 @@ RUN apt-get update && \
     apt-get -y dist-upgrade
 
 # install sudo
-RUN apt-get install -y sudo
+RUN apt-get install -y sudo locales
 
 # development tools
-RUN apt-get install -y vim less locales
 RUN locale-gen en_US.UTF-8 en_GB.UTF-8 eu_FR.UTF-8
+RUN apt-get -y update
+RUN apt-get install -y vim less
 
 # for linking
 ENV LD_LIBRARY_PATH /usr/local/lib

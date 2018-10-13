@@ -1,7 +1,11 @@
 /* compilation option */
-#define VERBOSE
+//#define VERBOSE
 //#define DEBUG
 //#define FFACTOR_GAUSS
+
+#ifndef CMASK
+#define CMASK -1.
+#endif
 
 /* standard imports */
 #include <cstdlib>
@@ -20,7 +24,6 @@
 /* customs imports */
 #include "include/utils_gsl.h"
 #include "include/linalg.h"
-#include "include/sparse_matrix.h"
 #include "include/min_contacts_kij.h"
 
   /* specify contact functions */
@@ -58,20 +61,20 @@ int main(int argc, char *argv []){
 //****************************************************************************
   /* read arguments */
   if ( argc != 4 )
-    throw invalid_argument("Syntax: <cmap> <N> <thres>");
+    throw invalid_argument("Syntax: <N> <thres> <cmap>");
 
   /** import contact map **/{
     convert.clear();
     convert.str(argv[1]);
-    convert >> pathtoemat;
-
-    convert.clear();
-    convert.str(argv[2]);
     convert >> N;
 
     convert.clear();
-    convert.str(argv[3]);
+    convert.str(argv[2]);
     convert >> thres;
+
+    convert.clear();
+    convert.str(argv[3]);
+    convert >> pathtoemat;
   }
 
 #if defined(DEBUG)
@@ -176,7 +179,8 @@ int main(int argc, char *argv []){
   fin.close();
 
   /* create workspace and model*/
-  mod = new model(cmat, thres, contact_func_f, contact_func_df, contact_func_finv, wkp);
+  mod = new model(cmat, thres, contact_func_f, contact_func_df, contact_func_finv, wkp, CMASK);
+  printf("%-20s%-lf\n","CMASK",CMASK);
 
   /* write matrices of the model */
   mod->set_cmat(cmat);
@@ -205,24 +209,19 @@ int main(int argc, char *argv []){
   print_matrix(fsigmainv_opt,sigmainv_opt);
 
   /* compute distances */
-  double fc, fcc, fs, fk;
-  linalg_daxpy(-1.0,cmat,cmat_opt);
-  fc=linalg_dnrm2(cmat_opt) / (N+1);
-  fcc=2.0 * fc / (linalg_dnrm2(cmat) + linalg_dnrm2(cmat_opt)); // 2 ||M1 - M2|| / (||M1|| + ||M2||)
-  linalg_daxpy(-1.0,kmat,kmat_opt);
-  fk=linalg_dnrm2(kmat_opt) / (N+1);
-  linalg_daxpy(-1.0,sigma,sigma_opt);
-  fs=linalg_dnrm2(sigma_opt) / N;
+  double fc, fc_rel;
+  compute_distances(&fc,&fc_rel,mod);
+
   printf("DISTANCES BETWEEN INPUT AND OUTPUT MATRICES:\n");
   printf("d1(c,c_opt)=%.6e\n",fc);
-  printf("d2(c,c_opt)=%.6e\n",fcc);
-  printf("d(k,k_opt)=%.6e\n",fk);
-  printf("d(sigma,sigma_opt)=%.6e\n",fs);
+  printf("d2(c,c_opt)=%.6e\n",fc_rel);
+//  printf("d(k,k_opt)=%.6e\n",fk);
+//  printf("d(sigma,sigma_opt)=%.6e\n",fs);
   fdist << setw(20) << thres;
   fdist << setw(20) << fc;
-  fdist << setw(20) << fcc;
-  fdist << setw(20) << fk;
-  fdist << setw(20) << fs;
+  fdist << setw(20) << fc_rel;
+//  fdist << setw(20) << fk;
+//  fdist << setw(20) << fs;
   fdist << endl;
 
   /* exit */

@@ -1,7 +1,11 @@
-import os
+#################### color list ####################
+# indigo, gold, hotpink, firebrick, indianred, yellow, mistyrose, darkolivegreen, olive, darkseagreen, pink, tomato, lightcoral, orangered, navajowhite, lime, palegreen, darkslategrey, greenyellow, burlywood, seashell, mediumspringgreen, fuchsia, papayawhip, blanchedalmond, chartreuse, dimgray, black, peachpuff, springgreen, aquamarine, white, orange, lightsalmon, darkslategray, brown, ivory, dodgerblue, peru, lawngreen, chocolate, crimson, forestgreen, darkgrey, lightseagreen, cyan, mintcream, silver, antiquewhite, mediumorchid, skyblue, gray, darkturquoise, goldenrod, darkgreen, floralwhite, darkviolet, darkgray, moccasin, saddlebrown, grey, darkslateblue, lightskyblue, lightpink, mediumvioletred, slategrey, red, deeppink, limegreen, darkmagenta, palegoldenrod, plum, turquoise, lightgrey, lightgoldenrodyellow, darkgoldenrod, lavender, maroon, yellowgreen, sandybrown, thistle, violet, navy, magenta, dimgrey, tan, rosybrown, olivedrab, blue, lightblue, ghostwhite, honeydew, cornflowerblue, slateblue, linen, darkblue, powderblue, seagreen, darkkhaki, snow, sienna, mediumblue, royalblue, lightcyan, green, mediumpurple, midnightblue, cornsilk, paleturquoise, bisque, slategray, darkcyan, khaki, wheat, teal, darkorchid, salmon, deepskyblue, rebeccapurple, darkred, steelblue, palevioletred, lightslategray, aliceblue, lightslategrey, lightgreen, orchid, gainsboro, mediumseagreen, lightgray, mediumturquoise, lemonchiffon, cadetblue, lightyellow, lavenderblush, coral, purple, aqua, whitesmoke, mediumslateblue, darkorange, mediumaquamarine, darksalmon, beige, blueviolet, azure, lightsteelblue, oldlace
+#################### imports ####################
+import os,sys
 import numpy as np
 import yaml
-from scipy.stats import iqr
+from scipy.stats import iqr,pearsonr
+import scipy.stats as sstat
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
@@ -20,18 +24,19 @@ yaml.add_representer(float,float_representer)
 yaml.add_representer(np.float_,npfloat_representer)
 yaml.add_representer(np.ndarray,nparray_representer)
 
-# global settings
-plt.rcParams['axes.linewidth'] = 0.5
+# matplotlib controls
+plt.rcParams['svg.fonttype'] = 'none'  # to embed fonts in output ('path' is to convert as text as paths)
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams['axes.linewidth']=0.5
+colornames = matplotlib.colors.cnames
 
-###########################################################################
-## utils
-###########################################################################
+# dpi
+mydpi=150
+
+#################### functions -- utils ####################
 def print_time():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-###########################################################################
-## matrices
-###########################################################################
 def read_map(tfile,xy=False):
     # read matrices
     DATA=np.loadtxt(tfile)
@@ -113,10 +118,7 @@ def compare_matrix(A,B,eucl_dist,rel_dist):
         res['rel_dist'] = (2.0*np.linalg.norm(A-B)/(np.linalg.norm(A)+np.linalg.norm(B)))
     return res
 
-###########################################################################
-## plots
-###########################################################################
-
+#################### functions -- plots ####################
 def plot_matrix(ax,X,Y,Z,cmapname,method=None,vmin=None,vmax=None, interpolation='none'):
     """
     Plot the input matrix into the given Axe instance.
@@ -190,7 +192,7 @@ def make_matrix_plot(filein, plot_matrix_arg, fig_width, fig_height, fontsize, n
     ax=fig.gca()
 
     # plot figure
-    cs=plot_matrix(ax,x,y,mat,**plot_matrix_arg)
+    cs=plot_matrix(ax,x,y,mat,interpolation='nearest',**plot_matrix_arg) # note that interpolation='none' causes a problem with the svg image type
 
     # draw arrows on largest values
     if (arrows != None):
@@ -311,7 +313,7 @@ def make_matrix_plot(filein, plot_matrix_arg, fig_width, fig_height, fontsize, n
     cbar=fig.colorbar(cs,cax=cbar_ax,ticks=tick_locator,format=tick_formatter)
     cbar.ax.tick_params(length=2)
     if (cbarlabel != None):
-        cbar.ax.set_ylabel(cbarlabel,fontsize=fontsize, rotation=270, labelpad=20)
+        cbar.ax.set_ylabel(cbarlabel,fontsize='large', rotation=270, labelpad=20)
 
     # legend
     rect=[0.0,0.0,1.0,1.0]
@@ -326,8 +328,11 @@ def make_matrix_plot(filein, plot_matrix_arg, fig_width, fig_height, fontsize, n
     if (lognorm):
         fileout="{}_lognorm".format(fileout)
 #    fileout = "{}.png".format(fileout)
-    fileout = "{}.pdf".format(fileout)
-    fig.savefig(fileout,dpi=dpi,bbox_inches='tight',pad_inches=0)
+    filename = fileout
+    for ext in '.png', '.pdf', '.svg':
+        fileout = filename + ext
+        fig.savefig(fileout,bbox_inches='tight',pad_inches=0,dpi=mydpi)
+        print "{:<20s}{:<s}".format("fileout",fileout)
     plt.close('all')
 
     return fileout
@@ -376,6 +381,7 @@ def make_matrix_plot_two(file_exp, file_pred, plot_matrix_arg, fig_width, fig_he
 #        amin = amin / bin_size**2
         idx = (mat < amin)
         mat[idx] = np.nan
+#        mat[idx] = amin
     if (amax != None):
 #        amax = amax / bin_size**2
         idx = (mat > amax)
@@ -386,7 +392,7 @@ def make_matrix_plot_two(file_exp, file_pred, plot_matrix_arg, fig_width, fig_he
     ax=fig.gca()
 
     # plot figure
-    cs=plot_matrix(ax,x,y,mat,**plot_matrix_arg)
+    cs=plot_matrix(ax,x,y,mat,interpolation='nearest',**plot_matrix_arg) # note that interpolation='none' causes a problem with the svg image type
 
     # draw arrows on largest values
     if (arrows != None):
@@ -519,14 +525,16 @@ def make_matrix_plot_two(file_exp, file_pred, plot_matrix_arg, fig_width, fig_he
         fileout = "{}_lmin{:d}".format(fileout,lmin)
     if (lognorm):
         fileout="{}_lognorm".format(fileout)
-#    fileout = "{}.png".format(fileout)
-    fileout = "{}.pdf".format(fileout)
-    fig.savefig(fileout,dpi=dpi,bbox_inches='tight',pad_inches=0)
+    filename=fileout
+    for ext in '.png', '.pdf', '.svg':
+        fileout = filename + ext
+        fig.savefig(fileout,bbox_inches='tight',pad_inches=0,dpi=mydpi)
+        print "{:<20s}{:<s}".format("fileout",fileout)
     plt.close('all')
 
     return fileout
 
-def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsize, nticks_max, bin_size, dpi, lognorm, nrows, ncols, amin, amax, titles=[], ref=None, min_sub='none', max_sub='none', cmat_ref_file=None):
+def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsize, nticks_max, bin_size, dpi, lognorm, nrows, ncols, amin, amax, titles=[], ref=None, min_sub='none', max_sub='none', cmat_ref_file=None,filename=None):
     """
     Plot the matrix in the input file and write the output file.
     Argument:
@@ -560,8 +568,6 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
         bin_size = int(bin_size)
         if (bin_size > 1):
             x,y,mat = bin_map(x,y,mat,bin_size=bin_size,binning='mean')
-        else:
-            mat = mat_raw
 
         # remove extreme values
         if (amin != None):
@@ -591,9 +597,9 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
     # create figure
     fig=plt.figure(num='none',facecolor='white', figsize=(ncols*ax_width,nrows*ax_height))
     gs = gridspec.GridSpec(nrows,ncols)
-    gs.update(left=0.00, right=0.95, wspace=0.0)
+    gs.update(left=0.00, right=0.98, wspace=0.0)
     gs_cbar = gridspec.GridSpec(1,1)
-    gs_cbar.update(left=0.98, right=1.00, wspace=0)
+    gs_cbar.update(left=0.985, right=1.00, wspace=0)
     css = []
 
     # choose reference plot
@@ -609,9 +615,10 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
 
     # loop on plots
     for i,ind in enumerate(selection):
+        print "i = {:d}    ind = {:d}".format(i,ind)
         # control
         if not (i < nrows*ncols ):
-            print "There are not enough plots in the figures!"
+            print "There are not enough axes in the figures!"
             break
 
         # get data
@@ -621,7 +628,7 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
         c = i%ncols
         r = (i-c)/ncols
         ax = fig.add_subplot(gs[r,c])
-        cs=plot_matrix(ax,x,y,mat,vmin=vmin,vmax=vmax,**plot_matrix_arg)
+        cs=plot_matrix(ax,x,y,mat,vmin=vmin,vmax=vmax,interpolation='nearest',**plot_matrix_arg)
         css.append(cs)
 
         if (lognorm):
@@ -639,7 +646,7 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
         if (titles != []):
             text = titles[ind]
             xy = (0.5,1.0)
-            ax.annotate(text,xy=xy,xycoords='axes fraction',ha='center',va='bottom', fontsize=1.2*fontsize)
+            ax.annotate(text,xy=xy,xycoords='axes fraction',ha='center',va='bottom', fontsize='medium')
 
     # customize color bar
     cbar_ax = fig.add_subplot(gs_cbar[0,0])
@@ -653,16 +660,19 @@ def make_matrix_plot_multi(fileins, plot_matrix_arg, ax_width, ax_height, fontsi
     cbar = matplotlib.colorbar.Colorbar(ax=cbar_ax, mappable=cs, ticks=tick_locator, format=tick_formatter)
 
     # legend
-    destdir=os.path.dirname(os.path.relpath(fileins[0]))
-    suf = "_".join(basenames)
-    fileout=os.path.join(destdir,"{}".format(suf))
+    if filename is None:
+        destdir=os.path.dirname(os.path.relpath(fileins[0]))
+        suf = "_".join(basenames)
+        filename=os.path.join(destdir,"{}".format(suf))
     if (bin_size > 1):
-        fileout = "{}_bin{:d}".format(fileout,bin_size)
+        filename = "{}_bin{:d}".format(filename,bin_size)
     if (lognorm):
-        fileout="%s_lognorm" %(fileout)
-#    fileout = "{}.png".format(fileout)
-    fileout = "{}.pdf".format(fileout)
-    fig.savefig(fileout,dpi=dpi,bbox_inches='tight',pad_inches=0)
+        filename="%s_lognorm" %(filename)
+    for ext in '.png', '.pdf', '.svg':
+        fileout = filename + ext
+        fig.savefig(fileout,bbox_inches='tight',pad_inches=0,dpi=mydpi)
+        print "{:<20s}{:<s}".format("fileout",fileout)
+    #fig.savefig(fileout,dpi=dpi,transparent=True, bbox_inches='tight',pad_inches=0)
     plt.close('all')
 
     return fileout
@@ -709,7 +719,7 @@ def make_matrix_compare_multi(fileins, compare_matrix_arg):
     destdir=os.path.dirname(os.path.relpath(fileins[0]))
     suf = "_".join(basenames)
     fileout=os.path.join(destdir,"{}".format(suf))
-    fileout = "{}.dat".format(fileout)
+    fileout = "{}.yml".format(fileout)
     fout = open(fileout,"w")
     yaml.dump(res,stream=fout,default_flow_style=False, tags=None)
     fout.close()

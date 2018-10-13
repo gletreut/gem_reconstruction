@@ -6,6 +6,7 @@ KEY1=lapack
 
 FFAC=ffactor_gauss
 EXEC=prog
+CMASK=0.0
 
 # source files
 SRC1='minimize.cpp'
@@ -38,7 +39,8 @@ then
 fi
 
 # set compilation variables
-CDEF=$(python -c "print \"-d${KEY1} -d${FFAC}\".upper()")
+CDEF=$(python -c "print \"-d${KEY1} -d${FFAC} -dcmask=${CMASK}\".upper()")
+CDEF=$(python -c "print \"-d${KEY1} -d${FFAC} -dcmask=${CMASK} -dverbose\".upper()")
 CCINC="-std=c++11 -O3 ${CDEF}"
 OBJ=$(python -c "a=\"${SRC2}\".replace(\".cpp\",\".o\"); print a")
 
