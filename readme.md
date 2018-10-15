@@ -1,12 +1,12 @@
 # Gaussian effective model reconstruction from contact probability matrix
 
-The code given here implements a method to reconstruct a polymer model with harmonic pair interactions that reproduce a given contact probability matrix. There are two variants to reconstruct a Gaussian effective model:
-* direct mapping;
+The code given here implements a method to reconstruct a polymer model with harmonic pair interactions that reproduces a given contact probability matrix. There are two variants to reconstruct a Gaussian effective model:
 * minimization.
-
-## Getting Started
+* direct mapping;
 
 Follow these instructions to get a basic running example.
+
+## Getting Started
 
 ### Prerequisites
 
@@ -55,19 +55,22 @@ There are three implementations available:
 
 `minimize_thres.cpp` requires the following arguments: `cmapfile N thresmin thresmax dthres`. `cmapfile` is the path to the file containing a contact probability matrix. `N` is the last index of the contact probability matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
 
-`minimize_thres_norm.cpp` requires the following arguments: `nmapfile znorm N thresmin thresmax dthres`. `nmapfile` is the path to the file containing a contact count matrix. `znorm` is a global factor by which to divide every entry of the contact count matrix. `N` is the last index of the contact count matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
+`minimize_thres_norm.cpp` requires the following arguments: `nmapfile N thresmin thresmax dthres znorm`. `nmapfile` is the path to the file containing a contact count matrix. `N` is the last index of the contact count matrix to import. `thresmin` is the minimum threshold to be used in the GEM mapping. `thresmax` is the maximum threshold. `dthres` is the threshold increment between consecutive minimizations. `znorm` is a global factor by which to divide every entry of the contact count matrix. Only the GEM with the lowest least-square distance to the input contact probability matrix is saved.
 
 ### Compilation
-The compilation process can be performed using the `minimize/bash/compile.sh` file:
+The compilation process can be performed using one of the following files:
+* `compile.cpp`.
+* `compile_thres.cpp`.
+* `compile_thres_norm.cpp`.
+
+For example:
 ```
 cd minimize
 bash bash/compile.sh
 ```
 This will write an executable file named `prog`.
 
-You may need first to edit the `compile.sh` file with a text editor to select the implementation you want to compile. You will need to comment/uncomment the lines defining the `SRC1` variable.
-
-You may also want to modity the `KEY1` variable to choose among the following options: `gsl`, `lapack` or `mkl`. This refers to the external library used for linear algebra operations. See the source code `minimize/include/linalg.cpp` for more details.
+You may want to modity the `KEY1` variable in the file `compile_utils.sh` to choose among the following options: `gsl`, `lapack` or `mkl`. This refers to the external library used for linear algebra operations. See the source code `minimize/include/linalg.cpp` for more details.
 
 ### Running examples
 #### Contact probability matrix from Brownian Dynamics simulations

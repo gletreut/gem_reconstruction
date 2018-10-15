@@ -1,3 +1,16 @@
+//****************************************************************************
+// minimize_thres.cpp - Routine for the reconstruction of a Gaussian Effective Model
+// from a given contact probability matrix.
+// The arguments are:
+//  * the input contact probability matrix.
+//  * the largest matrix index N (matrix size is N+1).
+//  * the smallest threshold to be used in the GEM mapping.
+//  * the largest threshold to be used in the GEM mapping.
+//  * the threshold increment.
+//
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 /* compilation option */
 //#define VERBOSE
 //#define DEBUG

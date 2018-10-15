@@ -1,3 +1,9 @@
+//****************************************************************************
+// utils_gsl.h - Defines a few useful functions.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #ifndef UTILS_GSL_H
 #define UTILS_GSL_H
 

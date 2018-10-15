@@ -1,3 +1,11 @@
+//****************************************************************************
+// sparse_matrix.h - Defines a sparse matrix structure. In the implementation,
+// the GSL implementation is used when enabled. For the LAPACK and MKL
+// implementation, a custom implementation is given.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #ifndef SPARSE_MATRIX_H
 #define SPARSE_MATRIX_H
 

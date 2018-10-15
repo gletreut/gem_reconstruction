@@ -1,3 +1,9 @@
+//****************************************************************************
+// linalg.h - Various functions to perform linear algebra operations
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #ifndef LINALG_H
 #define LINALG_H
 

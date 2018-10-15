@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # source files
-SRC1='minimize.cpp'
+SRC1='minimize_thres.cpp'
 
 # get source directory directories
 BDIR=$(python -c "import os.path; print os.path.dirname(os.path.realpath(\"$0\"))")

@@ -50,10 +50,8 @@ for tdir in tdirs:
     # copy param file for records
     filename = os.path.basename(paramfile)
     dest = os.path.join(tdir,filename)
-    try:
+    if (os.path.realpath(dest) != os.path.realpath(paramfile)):
         shutil.copyfile(paramfile,dest)
-    except shutil.Error:
-        pass
 
 # loop in the target directories
 for tdir in tdirs:
@@ -68,14 +66,14 @@ for tdir in tdirs:
 
     # make multi plots
     if (len(params['multi_matrices']) == 1):
-        file_exp = params['multi_matrices'][0][0]
-        file_pred = params['multi_matrices'][0][1]
+        basenames = params['multi_matrices'][0]
+        file_exp = basenames[0]
+        file_pred = basenames[1]
         fs=[]
-        basenames = [file_exp,file_pred]
         for basename in basenames:
             f = os.path.join(tdir,basename)
             if not (os.path.isfile(f)):
-                sys.exit("some files in the list do not exist: {}".format(" ".join(basenames)))
+                sys.exit("File in the list do not exist: {}".format(f))
             fs.append(f)
         fileout = make_matrix_plot_two(fs[0],fs[1],**params['make_matrix_plot_two_arg'])
         print "{:<20s}{:<s}".format("fileout",fileout)

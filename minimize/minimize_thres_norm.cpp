@@ -1,3 +1,17 @@
+//****************************************************************************
+// minimize_thres_norm.cpp - Routine for the reconstruction of a Gaussian Effective Model
+// from a given contact probability matrix.
+// The arguments are:
+//  * the input matrix of contacts.
+//  * the largest matrix index N (matrix size is N+1).
+//  * the smallest threshold to be used in the GEM mapping.
+//  * the largest threshold to be used in the GEM mapping.
+//  * the threshold increment.
+//  * the global normalization factor to apply to the input matrix of contacts.
+//
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 /* compilation option */
 //#define VERBOSE
 //#define DEBUG
@@ -69,7 +83,7 @@ int main(int argc, char *argv []){
 
   /* read arguments */
   if ( argc != 7 )
-    throw invalid_argument("Syntax: <cmap> <znorm> <N> <thresmin> <thresmax> <dthres>");
+    throw invalid_argument("Syntax: <cmap> <N> <thresmin> <thresmax> <dthres> <znorm>");
 
   /** import contact map **/
   {
@@ -79,23 +93,23 @@ int main(int argc, char *argv []){
 
     convert.clear();
     convert.str(argv[2]);
-    convert >> znorm;
-
-    convert.clear();
-    convert.str(argv[3]);
     convert >> N;
 
     convert.clear();
-    convert.str(argv[4]);
+    convert.str(argv[3]);
     convert >> thresmin;
 
     convert.clear();
-    convert.str(argv[5]);
+    convert.str(argv[4]);
     convert >> thresmax;
 
     convert.clear();
-    convert.str(argv[6]);
+    convert.str(argv[5]);
     convert >> dthres;
+
+    convert.clear();
+    convert.str(argv[6]);
+    convert >> znorm;
 
     if (thresmin > thresmax){
       thres = thresmin;

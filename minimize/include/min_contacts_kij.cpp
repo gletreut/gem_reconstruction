@@ -1,4 +1,8 @@
-/* compile with: g++ main.cpp $(gsl-config --cflags --libs) */
+//****************************************************************************
+// min_contacts_kij.h - Implementation of the definitions in min_contacts_kij.h.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 
 #include "min_contacts_kij.h"
 

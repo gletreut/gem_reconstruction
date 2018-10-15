@@ -1,3 +1,8 @@
+//****************************************************************************
+// utils_gsl.cpp - Implementation of the definitions in utils_gsl.h.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 #include "utils_gsl.h"
 
 using namespace std;

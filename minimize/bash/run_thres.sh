@@ -10,19 +10,19 @@ fi
 cd $RDIR
 
 # redirect output to log file
-LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
-LOG=${RDIR}/$LOG
-exec 1<&-
-exec 2<&-
-exec 1<>$LOG
-exec 2>&1
+#LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
+#LOG=${RDIR}/$LOG
+#exec 1<&-
+#exec 2<&-
+#exec 1<>$LOG
+#exec 2>&1
 
 # parameters
 EXEC=prog                   # executable
 argsstr="argsstr"
-datastr="datastr"
+configstr="configstr"
 
-# check existence of args and data file
+# check existence of args and config file
 if [ ! -e $EXEC ]
 then
   echo "missing executable file $EXEC"
@@ -35,29 +35,29 @@ then
   exit 0
 fi
 
-if [ ! -f $datastr ]
+if [ ! -f $configstr ]
 then
-  echo "missing data argument file $datastr"
+  echo "missing config argument file $configstr"
   exit 0
 fi
 
 # get arguments
 #ARGS=$(cat $argsstr)
-N=$(sed -n 1p $argsstr)
-THRESMIN=$(sed -n 2p $argsstr)
-THRESMAX=$(sed -n 3p $argsstr)
-DTHRES=$(sed -n 4p $argsstr)
-CMAP=$(sed -n 5p $argsstr)
-DATA=$(cat $datastr)
+CMAP=$(sed -n 1p $argsstr)
+N=$(sed -n 2p $argsstr)
+THRESMIN=$(sed -n 3p $argsstr)
+THRESMAX=$(sed -n 4p $argsstr)
+DTHRES=$(sed -n 5p $argsstr)
+CONFIG=$(cat $configstr)
 
+echo "CMAP: $CMAP"
 echo "N: $N"
 echo "THRESMIN: $THRESMIN"
 echo "THRESMAX: $THRESMAX"
 echo "DTHRES: $DTHRES"
-echo "CMAP: $CMAP"
-echo "DATA: $DATA"
+echo "CONFIG: $CONFIG"
 
-if [ -z $CMAP ] || [ -z $THRESMIN ] || [ -z $THRESMAX ] [ -z $DTHRES ] || [ -z $N ]
+if [ -z $CMAP ] || [ -z $THRESMIN ] || [ -z $THRESMAX ] || [ -z $DTHRES ] || [ -z $N ]
 then
   echo invalid arguments in arguments file: $ARGS
   exit 1
@@ -75,4 +75,4 @@ then
 fi
 
 # execute program
-time ./$EXEC $CMAP $N $THRESMIN $THRESMAX $DTHRES < $DATA
+time ./$EXEC $CMAP $N $THRESMIN $THRESMAX $DTHRES < $CONFIG

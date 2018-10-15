@@ -719,8 +719,131 @@ def make_matrix_compare_multi(fileins, compare_matrix_arg):
     destdir=os.path.dirname(os.path.relpath(fileins[0]))
     suf = "_".join(basenames)
     fileout=os.path.join(destdir,"{}".format(suf))
-    fileout = "{}.yml".format(fileout)
+    fileout = "{}.dat".format(fileout)
     fout = open(fileout,"w")
     yaml.dump(res,stream=fout,default_flow_style=False, tags=None)
     fout.close()
     return fileout
+
+def make_distance_plot(filein, col_thres, col_dist1, col_dist2, xlabel, ylabel1, ylabel2, annot=True, ticks_dx=0.5, ticks_dy=0.1, lw=0.5, ms=2, linestyle='-', scale_div1=1., scale_div2=1., col_posdef=None, ylognorm=False):
+    """
+    Plot the input distance file consisting of several columns:
+    threshold   distance_1  distance_2  ...     distance_M
+    ...         ...         ...         ...     ...
+    """
+    # plot variables
+    colors=['b','g']
+
+    # import matrix
+    data = np.loadtxt(filein)
+
+    # sort
+    idx=np.argsort(data[:,col_thres])
+    data=data[idx]
+
+    # set coordinates for plot
+    X = data[:,col_thres]
+    Y1 = data[:,col_dist1] / scale_div1
+    if (col_dist2 != None):
+        Y2 = data[:,col_dist2] / scale_div2
+    else:
+        Y2=None
+    if (col_posdef != None):
+        Z = data[:,col_posdef]
+
+    # find (last) minimum
+    kopt=np.argmin(Y1)
+    #kopt=last_minimum(Y)
+    xopt=X[kopt]
+    yopt=Y1[kopt]
+    #print "optimum at xopt={:.2f}  yopt={:.2e}".format(xopt,yopt)
+
+    # create figure
+    # plot
+    len_xaxis,len_yaxis = 3.5,3.5 #fix here your numbers
+    xspace, yspace = .9, .9 # change the size of the void border here.
+    x_fig,y_fig = len_xaxis / xspace, len_yaxis / yspace
+    figsize=(x_fig,y_fig)
+    fig = plt.figure(num='none', facecolor='w',figsize=figsize)
+    ax1 = fig.gca()
+    if (col_dist2 != None):
+        ax2=ax1.twinx()
+    else:
+        ax2=None
+
+    # plot figure
+    ax1.plot(X,Y1,linestyle=linestyle,marker='o', ms=ms, color=colors[0],lw=lw)
+    if (annot):
+        ax1.plot([xopt],[yopt], 'o', marker='s', ms=2*ms, color=colors[0])
+    ax1.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=ticks_dx))
+
+    if (ylognorm):
+        ax1.set_yscale('log')
+    else:
+        ax1.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=ticks_dy))
+
+    # labels and axis
+    ax1.set_xlabel(xlabel, fontsize='large',labelpad=10)
+    if (ax2 == None):
+        ax1.set_ylabel(ylabel1,fontsize='large',labelpad=10)
+    else:
+        ax1.set_ylabel(ylabel1,fontsize='large',color=colors[0],labelpad=10)
+
+        ax2.plot(X,Y2,linestyle=linestyle, marker='v', ms=ms, color=colors[1],lw=lw)
+        ax2.set_ylabel(ylabel2,fontsize='large',color=colors[1],labelpad=10)
+        if (ylognorm):
+            ax2.set_yscale('log')
+        else:
+            ax2.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=nticks_max))
+
+    # non-positive definite area
+    if (col_posdef != None):
+        idx = (Z != 0.)
+        xlo = np.min(X[idx])
+        xhi = np.max(X[idx])
+        ax1.axvspan(xmin=xlo,xmax=xhi,color='red',alpha=0.5, lw=0, label="unphysical")
+        ax1.legend(loc='best', fontsize='medium', frameon=False)
+
+    # remove side axis
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    ax1.get_xaxis().tick_bottom()
+    ax1.get_yaxis().tick_left()
+    if (ax2 != None):
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['left'].set_visible(False)
+        ax2.get_xaxis().tick_bottom()
+        ax2.get_yaxis().tick_right()
+
+    # make arrow
+    if (annot):
+        #text="optimal for $\\xi^{{opt}}={:.2f}$".format(xopt)
+        text="optimal threshold"
+        xy=np.array([xopt,yopt])
+        xytext = np.array([0.5,0.9])
+        datatr = ax1.transData.inverted()
+        axtr = ax1.transAxes
+        xytp = axtr.transform(xytext)
+        xytext = datatr.transform(xytp)
+        if (xy[0] < xytext[0]):
+            sgn=+1
+        else:
+            sgn=-1
+        ax1.annotate(text,xy=xy,xycoords='data',xytext=xytext,
+                textcoords="data",\
+                fontsize='medium',va="center",ha="center",\
+                arrowprops=dict(arrowstyle='-|>', connectionstyle='arc3,rad=%.1f' %(sgn*0.2),
+                    facecolor='k', shrinkB=5.00))
+
+    # write output and exit
+    fileout = os.path.splitext(filein)[0]
+    if (ylognorm):
+        fileout += "_ylognorm"
+    filename=fileout
+    for ext in '.png', '.pdf', '.svg':
+        fileout = filename + ext
+        fig.savefig(fileout,bbox_inches='tight',pad_inches=0,dpi=mydpi)
+        print "{:<20s}{:<s}".format("fileout",fileout)
+    plt.close('all')
+    return fileout
+

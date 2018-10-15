@@ -1,3 +1,14 @@
+//****************************************************************************
+// minimize.cpp - Routine for the reconstruction of a Gaussian Effective Model
+// from a given contact probability matrix.
+// The arguments are:
+//  * the input contact probability matrix.
+//  * the largest matrix index N (matrix size is N+1).
+//  * the threshold to be used in the GEM mapping.
+//
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 /* compilation option */
 //#define VERBOSE
 //#define DEBUG
@@ -61,20 +72,20 @@ int main(int argc, char *argv []){
 //****************************************************************************
   /* read arguments */
   if ( argc != 4 )
-    throw invalid_argument("Syntax: <N> <thres> <cmap>");
+    throw invalid_argument("Syntax: <cmap> <N> <thres>");
 
   /** import contact map **/{
     convert.clear();
     convert.str(argv[1]);
-    convert >> N;
+    convert >> pathtoemat;
 
     convert.clear();
     convert.str(argv[2]);
-    convert >> thres;
+    convert >> N;
 
     convert.clear();
     convert.str(argv[3]);
-    convert >> pathtoemat;
+    convert >> thres;
   }
 
 #if defined(DEBUG)

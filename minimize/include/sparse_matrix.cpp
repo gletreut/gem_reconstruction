@@ -1,3 +1,8 @@
+//****************************************************************************
+// sparse_matrix.cpp - Implementation of the definitions in sparse_matrix.h.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
 #include "sparse_matrix.h"
 #include <ctime>
 

@@ -1,3 +1,10 @@
+//****************************************************************************
+// contact_func_theta.cpp - Contact probability function with a theta form
+// factor
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #include <cmath>
 #include <gsl/gsl_sf_erf.h>
 #include <gsl/gsl_errno.h>

@@ -1,0 +1,11 @@
+make_distance_plot_args:
+  ticks_dx: 0.2
+  ticks_dy: 0.02
+  col_thres: 0
+  col_dist1: 1
+  col_dist2:
+  scale_div1: 1
+  xlabel: "$\\xi$"
+  ylabel1: "${LSE}^{1/2}$"
+  ylabel2: "$d_2(c_{ij},c_{ij}^{exp})$"
+

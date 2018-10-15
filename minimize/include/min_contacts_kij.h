@@ -1,3 +1,20 @@
+//****************************************************************************
+// min_contacts_kij.h - Definition of structures to be used for reconstructing
+// a Gaussian Effective Model through minimization of a least-square
+// estimator.
+//  * workspace_struct contains all the variables and objects that require memory
+//  allocation.
+//  * model_struct contains functions related to the Gaussian Effective Model.
+//  In particular it comprises the functions to make the correspondence
+//  between couplings and contact probabilities (and vice-versa).
+//  * minimization_struct contains several variables and objects that are used
+//  in the steepest descent routine.
+//  * other functions defined here include the cost function to minimize and
+//  the wrapper function to start the minimization.
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #ifndef INVERSE_KIJ_H
 #define INVERSE_KIJ_H
 

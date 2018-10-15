@@ -1,3 +1,10 @@
+//****************************************************************************
+// contact_func_gauss.cpp - Contact probability function with a Gaussian form
+// factor
+// Date: 2017-05-03
+// Created by: Guillaume Le Treut
+//****************************************************************************
+
 #include <cmath>
 
 #ifndef BIG

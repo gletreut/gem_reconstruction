@@ -43,9 +43,9 @@ fi
 
 # get arguments
 #ARGS=$(cat $argsstr)
-N=$(sed -n 1p $argsstr)
-THRES=$(sed -n 2p $argsstr)
-CMAP=$(sed -n 3p $argsstr)
+CMAP=$(sed -n 1p $argsstr)
+N=$(sed -n 2p $argsstr)
+THRES=$(sed -n 3p $argsstr)
 CONFIG=$(cat $configstr)
 
 echo "N: $N"
@@ -71,4 +71,4 @@ then
 fi
 
 # execute program
-time ./$EXEC $N $THRES $CMAP < $CONFIG
+time ./$EXEC $CMAP $N $THRES < $CONFIG
