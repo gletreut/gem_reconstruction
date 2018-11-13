@@ -23,20 +23,20 @@ SRC2='utils_gsl.cpp sparse_matrix.cpp linalg.cpp min_contacts_kij.cpp'
 
 # method used for linear algebra
 #KEY1=gsl
-KEY1=lapack
-#KEY1=mkl
+#KEY1=lapack
+KEY1=mkl
 
 FFAC=ffactor_gauss
 EXEC=prog
 CMASK=-1.0
 
 # redirect output to log file
-#LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
-#LOG=${RDIR}/$LOG
-#exec 1<&-
-#exec 2<&-
-#exec 1<>$LOG
-#exec 2>&1
+LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
+LOG=${RDIR}/$LOG
+exec 1<&-
+exec 2<&-
+exec 1<>$LOG
+exec 2>&1
 
 # start compilation
 INCLUDE=$RDIR/include
@@ -74,6 +74,8 @@ do
 done
 
 g++ ${CCINC} ${RDIR}/${SRC1} ${OBJ} ${CFLAGS} -o ${EXEC}
+ls -lh
+pwd
 
 # clean
 rm -f ${OBJ}

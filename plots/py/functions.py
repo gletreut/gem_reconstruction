@@ -847,3 +847,108 @@ def make_distance_plot(filein, col_thres, col_dist1, col_dist2, xlabel, ylabel1,
     plt.close('all')
     return fileout
 
+def make_distance_superimposition_plot(distfiles, norms, nij_max, fig_width, fig_height, fontsize, nticks_max, dpi, col_thres, col_dist, xlabel, ylabel, tdir, xbase=None, lw=0.5, ms=2, linestyle='-', scale_div=1.0, ylognorm=False):
+    """
+    Plot the input distance file consisting of several columns:
+    threshold   distance_1  distance_2  ...     distance_M
+    ...         ...         ...         ...     ...
+
+    The curves are overlaid.
+    """
+
+    # plot variables
+    fs_tex=1.15*fontsize
+    cmap = matplotlib.cm.viridis
+
+    # sort files
+    idx = np.argsort(norms)
+    norms=np.array(norms)[idx]
+    distfiles = np.array(distfiles)[idx]
+    nfiles = len(distfiles)
+
+    # import matrix
+    distances = []
+    for distfile in distfiles:
+        data_full = np.loadtxt(distfile)
+        data = []
+        data.append(data_full[:,col_thres])
+        data.append(data_full[:,col_dist]/scale_div)
+        distances.append(np.array(data))
+
+    # create figure
+    fig=plt.figure(num='none',facecolor='white', figsize=(fig_width,fig_height))
+    ax=fig.gca()
+    i0=0
+    y0=99.9e99
+    # fill the figure
+    for i in range(nfiles):
+        ## data
+        norm=norms[i]
+        print "{:<20s}{:.4f}".format("norm", norm)
+        distance=distances[i]
+        X,Y = distance
+        rmax = float(norm) / nij_max
+
+        ## minimum
+        kopt=np.argmin(Y)
+        xopt=X[kopt]
+        yopt=Y[kopt]
+        if (yopt < y0):
+            y0=yopt
+            i0=i
+
+        ## plot curve
+        if (nfiles == 1):
+            color='b'
+        else:
+            color=cmap(float(i)/(nfiles-1))
+
+        #ax.plot(X,Y,linestyle=linestyle,marker='o', ms=ms, color=color,lw=lw, label="$\mathcal{{N}} = {:.2g} n_{{max}}$".format(rmax))
+        ax.plot(X,Y,linestyle=linestyle,marker='o', ms=ms, color=color,lw=lw, label="$N_c = {:,d}$".format(int(norm)))
+        ax.plot([xopt],[yopt], marker='s', ms=2*ms, color=color)
+
+    # print optimum
+    print "Minimum for norm={:.1f}".format(norms[i0])
+    # labels and axis
+    ax.set_xlabel(xlabel, fontsize='large')
+    ax.set_ylabel(ylabel,fontsize='large')
+
+    if (xbase == None):
+        ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=nticks_max))
+    else:
+        ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(base=xbase))
+
+    if (ylognorm):
+        ax.set_yscale('log')
+        #ax.set_ylim(0.01,None)
+    else:
+        ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=nticks_max))
+
+
+    # legend
+    ax.legend(loc='upper center',fontsize='medium', numpoints=3, ncol=3, bbox_to_anchor=(0.5,-0.20), frameon=False)
+
+    # annotate
+    ax.annotate("$\max(n_{{ij}})={:,.0f}$".format(np.float_(nij_max)), xy=(1,0), xycoords='axes fraction', va='bottom', ha='right', fontsize='medium')
+
+    # remove side axis
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+
+    # write output and exit
+    fig.tight_layout(pad=0.1)
+    fileout = "distance_superimposition"
+    fileout = os.path.join(tdir,fileout)
+    if (ylognorm):
+        fileout+="_ylognorm"
+    filename=fileout
+
+    for ext in '.png', '.pdf', '.svg':
+        fileout = filename + ext
+        fig.savefig(fileout,bbox_inches='tight',pad_inches=0,dpi=mydpi)
+        print "{:<20s}{:<s}".format("fileout",fileout)
+    plt.close('all')
+    return fileout
+
