@@ -1,0 +1,59 @@
+# single matrices
+single_matrices: [kmat_opt.dat]
+make_matrix_plot_arg:
+  fig_width: 4
+  fig_height: 4
+  fontsize: 10
+  nticks_max: 8
+  bin_size:  1
+  binning: max
+  dpi: 300
+  lognorm: False
+  #jmin = i+lmin
+  lmin:
+  amin: 'nonzero'
+  amax:
+  arrows:
+    n: 0
+    l: 30
+    theta: -0.80
+  circles:
+    n: 0
+    r: 3
+  plot_matrix_arg:
+    method: imshow
+    #method: pcolormesh
+    #cmapname: jet
+    #cmapname: bone
+    cmapname: magma
+
+multi_matrices: []
+make_matrix_plot_two_arg:
+  fig_width: 4
+  fig_height: 4
+  fontsize: 10
+  nticks_max: 8
+  bin_size:  1
+  binning: max
+  dpi: 300
+  lognorm: False
+  #jmin = i+lmin
+  lmin: 0
+  amin: 'nonzero'
+  amax:
+  arrows:
+    n: 0
+    l: 30
+    theta: -0.80
+  circles:
+    n: 0
+    r: 3
+  plot_matrix_arg:
+    method: imshow
+    #method: pcolormesh
+    cmapname: magma
+
+make_matrix_compare_arg:
+  compare_matrix_arg:
+    eucl_dist: True
+    rel_dist: True

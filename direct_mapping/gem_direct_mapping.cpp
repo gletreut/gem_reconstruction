@@ -110,20 +110,20 @@ int main(int argc, char *argv []){
 
   /* read arguments */
   if ( argc != 6 )
-    throw invalid_argument("Syntax: <N> <thres> <emat_in> <cmat_out> <kmat_out>");
+    throw invalid_argument("Syntax: <emat_in> <N> <thres> <cmat_out> <kmat_out>");
 
   /** import contact map **/{
     convert.clear();
     convert.str(argv[1]);
-    convert >> N;
+    convert >> pathtoemat;
 
     convert.clear();
     convert.str(argv[2]);
-    convert >> thres;
+    convert >> N;
 
     convert.clear();
     convert.str(argv[3]);
-    convert >> pathtoemat;
+    convert >> thres;
 
     convert.clear();
     convert.str(argv[4]);

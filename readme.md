@@ -182,9 +182,9 @@ There are two files:
 * `gem_direct_mapping.cpp`.
 * `gem_direct_mapping_reverse.cpp`.
 
-`gem_direct_mapping.cpp` requires the following arguments: `N thres cmapfile cmapfileout kmatfileout`. `N` is the last index of the contact probability matrix to import. `thres` is the threshold to be used in the GEM mapping.`cmapfile` is the path to the file containing a contact probability matrix. `cmapfileout` is the path to the file that will contain the contact probability matrix of the reconstructed GEM. `kmatfileout` is the path to the file that will contain the couplings of the reconstructed GEM.
+`gem_direct_mapping.cpp` requires the following arguments: `cmapfile N thres cmapfileout kmatfileout`. `cmapfile` is the path to the file containing a contact probability matrix. `N` is the last index of the contact probability matrix to import. `thres` is the threshold to be used in the GEM mapping. `cmapfileout` is the path to the file that will contain the contact probability matrix of the reconstructed GEM. `kmatfileout` is the path to the file that will contain the couplings of the reconstructed GEM.
 
-`gem_direct_mapping_reverse.cpp` requires the following arguments: `N thres kmatfile cmapfileout kmatfileout`. `N` is the last index of the coupling matrix to import. `thres` is the threshold to be used in the GEM mapping.`kmatfile` is the path to the file containing a coupling matrix. `cmapfileout` is the path to the file that will contain the contact probability matrix of the reconstructed GEM. `kmatfileout` is the path to the file that will contain the couplings of the reconstructed GEM.
+`gem_direct_mapping_reverse.cpp` requires the following arguments: `kmatfile N thres cmapfileout kmatfileout`. `kmatfile` is the path to the file containing a coupling matrix. `N` is the last index of the coupling matrix to import. `thres` is the threshold to be used in the GEM mapping. `cmapfileout` is the path to the file that will contain the contact probability matrix of the reconstructed GEM. `kmatfileout` is the path to the file that will contain the couplings of the reconstructed GEM.
 
 ### Compilation
 The compilation process can be performed using the `direct_mapping/bash/compile.sh` file:
@@ -194,7 +194,7 @@ bash bash/compile.sh
 ```
 This will write an executable file named `prog`.
 
-You may want to modity the `KEY1` variable to choose among the following options: `gsl`, `lapack` or `mkl`. This refers to the external library used for linear algebra operations. See the source code `minimize/include/linalg.cpp` for more details.
+You may want to modity the `KEY1` variable in the file `compile_utils.sh` to choose among the following options: `gsl`, `lapack` or `mkl`. This refers to the external library used for linear algebra operations. See the source code `minimize/include/linalg.cpp` for more details.
 
 
 ### Running examples
@@ -239,7 +239,7 @@ The directory should now contain:
 └── run_example.sh
 ```
 
- The contact probability matrix of the reconstructed GEM is compared to the input in `cmat_bd_nconf10000_thres2.0_cmat_out_lognorm.pdf`. The coupling matrix of the reconstructed GEM is compared to the original ones in the file `kmat_gem_kmat_out.pdf`: the two matrices are very close.
+ The contact probability matrix of the reconstructed GEM is compared to the input in `cmat_bd_nconf10000_thres2.0_cmat_out_lognorm.pdf`. The coupling matrix of the reconstructed GEM is compared to the original ones in the file `kmat_gem_kmat_out.pdf`: the two matrices are very close (compare the lower left with the upper right half-matrices).
 
 vim: set sw=2 expandtab tabstop=2 foldcolumn=4:
 vim: set spell spelllang=en_us:

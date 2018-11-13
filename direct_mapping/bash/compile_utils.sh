@@ -19,7 +19,7 @@ then
 fi
 
 # other source files
-SRC2='utils_gsl.cpp sparse_matrix.cpp linalg.cpp min_contacts_kij.cpp'
+SRC2='utils_gsl.cpp sparse_matrix.cpp linalg.cpp gem_contacts_kij.cpp'
 
 # method used for linear algebra
 #KEY1=gsl
@@ -28,7 +28,6 @@ KEY1=lapack
 
 FFAC=ffactor_gauss
 EXEC=prog
-CMASK=-1.0
 
 # redirect output to log file
 LOG=$(python -c "import os.path; b=\"$0\".replace(\".sh\",\".log\");print os.path.basename(b)")
@@ -47,8 +46,7 @@ then
 fi
 
 # set compilation variables
-CDEF=$(python -c "print \"-d${KEY1} -d${FFAC} -dcmask=${CMASK}\".upper()")
-CDEF=$(python -c "print \"-d${KEY1} -d${FFAC} -dcmask=${CMASK} -dverbose\".upper()")
+CDEF=$(python -c "print \"-d${KEY1} -d${FFAC}\".upper()")
 CCINC="-std=c++11 -O3 ${CDEF}"
 OBJ=$(python -c "a=\"${SRC2}\".replace(\".cpp\",\".o\"); print a")
 

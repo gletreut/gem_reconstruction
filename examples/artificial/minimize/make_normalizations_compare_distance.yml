@@ -1,0 +1,43 @@
+parse_key: norm
+nij_max: 3115
+selection:
+#selection: [17100, 11400, 8550, 5700, 660, 290, 180, 130, 100]
+
+# single plots
+make_distance_superimposition_plot_args:
+  scale_div: 1.
+  fig_width: 4
+  fig_height: 3
+  fontsize: 10
+  nticks_max: 8
+  dpi: 300
+  col_thres: 0
+  col_dist: 1
+  ylognorm: True
+  xlabel: "$\\xi$"
+  ylabel: "${LSE}^{1/2}$"
+
+# comparison of several matrices
+multi_matrices: [[cmat.dat,cmat_opt.dat]]
+make_matrix_plot_multi_arg:
+  ax_width: 4
+  ax_height: 4
+  nrows: 1
+  ncols: 2
+  fontsize: 10
+  nticks_max: 8
+  bin_size:  1
+  dpi: 300
+  lognorm: True
+  amin: 1.0e-02
+  amax:
+  plot_matrix_arg:
+    method: imshow
+    #method: pcolormesh
+    cmapname: jet
+    #cmapname: bone
+
+make_matrix_compare_arg:
+  compare_matrix_arg:
+    eucl_dist: True
+    rel_dist: True
