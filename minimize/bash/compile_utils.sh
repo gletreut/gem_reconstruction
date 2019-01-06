@@ -23,8 +23,8 @@ SRC2='utils_gsl.cpp sparse_matrix.cpp linalg.cpp min_contacts_kij.cpp'
 
 # method used for linear algebra
 #KEY1=gsl
-KEY1=lapack
-#KEY1=mkl
+#KEY1=lapack
+KEY1=mkl
 
 FFAC=ffactor_gauss
 EXEC=prog
