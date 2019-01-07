@@ -6,6 +6,8 @@ The code given here implements a method to reconstruct a polymer model with harm
 
 Follow these instructions to get a basic running example.
 
+The code used in Le Treut et al. *Biophysical Journal* 115.12 (2018):2286-2294 ([doi: 10.1016/j.bpj.2018.10.032](https://doi.org/10.1016/j.bpj.2018.10.032)) can be found in the branch '`biophysical_journal_2018`'.
+
 ## Getting Started
 
 ### Prerequisites
